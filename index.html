@@ -4,15 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Fontanelle a Palermo</title>
-    <script type="module" crossorigin src="/fontanelle_pa/assets/index-B61R3Iqw.js"></script>
-    <link rel="stylesheet" crossorigin href="/fontanelle_pa/assets/index-9kceiYTh.css">
+    <script type="module" crossorigin src="/fontanelle_pa/assets/index-B4R_gJ-y.js"></script>
+    <link rel="stylesheet" crossorigin href="/fontanelle_pa/assets/index-BWAXTKnZ.css">
   <link rel="manifest" href="/fontanelle_pa/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/fontanelle_pa/registerSW.js"></script></head>
   <body>
     <div id="app">
       <div id="map">
-        <div id="isochrone-legend" class="map-legend">
-          <div class="legend-item"><span class="legend-swatch" style="background: #2ecc71"></span>Isocrona 5 min</div>
-          <div class="legend-item"><span class="legend-swatch" style="background: #f1c40f"></span>Isocrona 10 min</div>
+        <div id="map-legends">
+          <div id="isochrone-legend" class="map-legend">
+            <div class="legend-item"><span class="legend-swatch" style="background: #9ecae1"></span>Isocrona 5 min</div>
+            <div class="legend-item"><span class="legend-swatch" style="background: #fdcab5"></span>Isocrona 10 min</div>
+          </div>
+          <div id="copertura-legend" class="map-legend" hidden></div>
         </div>
       </div>
       <aside id="panel">
@@ -34,8 +37,8 @@
             <select id="filter-fontanella"><option value="">Tutte</option></select>
           </div>
           <div id="isochrone-toggles">
-            <label><input type="checkbox" data-isochrone-toggle="5" /> Isocrone 5 min</label>
-            <label><input type="checkbox" data-isochrone-toggle="10" /> Isocrone 10 min</label>
+            <label><input type="checkbox" data-isochrone-toggle="5" checked /> Isocrone 5 min</label>
+            <label><input type="checkbox" data-isochrone-toggle="10" checked /> Isocrone 10 min</label>
             <label><input type="checkbox" data-copertura-toggle="5" /> Copertura 5 min</label>
             <label><input type="checkbox" data-copertura-toggle="10" /> Copertura 10 min</label>
           </div>
