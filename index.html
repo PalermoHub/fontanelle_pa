@@ -4,12 +4,78 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Fontanelle a Palermo</title>
-    <script type="module" crossorigin src="/fontanelle_pa/assets/index-CU5qmUhn.js"></script>
-    <link rel="stylesheet" crossorigin href="/fontanelle_pa/assets/index-B-nVY7Wj.css">
+    <script type="module" crossorigin src="/fontanelle_pa/assets/index-BwXtJZ9O.js"></script>
+    <link rel="stylesheet" crossorigin href="/fontanelle_pa/assets/index-9b4Ag430.css">
   <link rel="manifest" href="/fontanelle_pa/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/fontanelle_pa/registerSW.js"></script></head>
   <body>
     <div id="app">
       <div id="map">
+        <div id="map-toolbar">
+          <button id="btn-home" title="Vista iniziale">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+          </button>
+          <button id="btn-theme" title="Tema scuro">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+            </svg>
+          </button>
+          <button id="btn-fs" title="Schermo intero">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            </svg>
+          </button>
+          <div class="zoom-wrap">
+            <input type="range" id="zoom-slider" min="11" max="17" step="0.1" value="12">
+          </div>
+          <div id="zoom-badge">12</div>
+        </div>
+
+        <div id="search-area">
+          <div id="search-chips"></div>
+          <div id="searchbar">
+            <span class="search-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+            </span>
+            <input type="text" id="search-input" placeholder="Cerca circoscrizione, quartiere, indirizzo…" autocomplete="off">
+            <button id="search-clear" hidden>&#x2715;</button>
+            <button id="filter-btn" title="Filtri">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
+                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+              </svg>
+              <span id="filter-badge" hidden></span>
+            </button>
+            <div id="search-dd"></div>
+          </div>
+        </div>
+
+        <div id="filter-overlay"></div>
+        <div id="filter-modal">
+          <div class="fm-header">
+            <h3>Filtri</h3>
+            <button id="fm-close">&#x2715;</button>
+          </div>
+          <div class="fm-group">
+            <label for="filter-circoscrizione">Circoscrizione</label>
+            <select id="filter-circoscrizione"><option value="">Tutte</option></select>
+          </div>
+          <div class="fm-group">
+            <label for="filter-quartiere">Quartiere</label>
+            <select id="filter-quartiere"><option value="">Tutti</option></select>
+          </div>
+          <div class="fm-group">
+            <label for="filter-fontanella">Fontanella</label>
+            <select id="filter-fontanella"><option value="">Tutte</option></select>
+          </div>
+          <div class="fm-footer">
+            <button id="fm-reset">Ripristina</button>
+            <button id="fm-apply">Applica</button>
+          </div>
+        </div>
+
         <div id="map-legends">
           <div id="isochrone-legend" class="map-legend">
             <div class="legend-item"><span class="legend-swatch" style="background: #6baed6"></span>Isocrona 5 min</div>
@@ -26,16 +92,7 @@
           <button data-tab="info">Info</button>
         </nav>
         <div id="panel-content">
-          <div id="filter-panel">
-            <label for="filter-circoscrizione">Circoscrizione</label>
-            <select id="filter-circoscrizione"><option value="">Tutte</option></select>
-            <label for="filter-quartiere">Quartiere</label>
-            <select id="filter-quartiere"><option value="">Tutti</option></select>
-            <label for="filter-search">Cerca indirizzo</label>
-            <input id="filter-search" type="search" placeholder="es. Via Roma" />
-            <label for="filter-fontanella">Fontanella</label>
-            <select id="filter-fontanella"><option value="">Tutte</option></select>
-          </div>
+          <input id="filter-search" type="hidden" />
           <div id="isochrone-toggles">
             <label><input type="checkbox" data-isochrone-toggle="5" checked /> Isocrone 5 min</label>
             <label><input type="checkbox" data-isochrone-toggle="10" checked /> Isocrone 10 min</label>
