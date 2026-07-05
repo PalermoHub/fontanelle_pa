@@ -598,7 +598,8 @@ uniform ${T} ${S} u_${z};
         <div class="rank-val">${se}</div>
       </div>`).join("")}
   </div>`}function rg(E){E.querySelectorAll("[data-circ]").forEach(D=>{D.addEventListener("click",()=>{const R=document.querySelector("#filter-circoscrizione");R.value=R.value===D.dataset.circ?"":D.dataset.circ,R.dispatchEvent(new Event("change"))})}),E.querySelectorAll("[data-quartiere]").forEach(D=>{D.addEventListener("click",()=>{const R=document.querySelector("#filter-circoscrizione"),N=document.querySelector("#filter-quartiere");R.value="",R.dispatchEvent(new Event("change")),N.value=D.dataset.quartiere,N.dispatchEvent(new Event("change"))})})}function sg(E){const D=document.querySelector("#panel-content");if(!D)return;const R=document.createElement("div");R.id="stats-block",R.innerHTML=`
-    <h2>Statistiche</h2>
+    <h2>💧 Fontanelle Palermo</h2>
+    <p class="panel-subtitle">Un progetto per scoprire le fontanelle di acqua potabile</p>
     <div class="fsec">
       <h3>Distribuzione per circoscrizione</h3>
       ${tg(E.perCircoscrizione)}
