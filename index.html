@@ -4,12 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Fontanelle a Palermo</title>
-    <script type="module" crossorigin src="/fontanelle_pa/assets/index-qR4vyi4s.js"></script>
-    <link rel="stylesheet" crossorigin href="/fontanelle_pa/assets/index-BlRN4PKI.css">
+    <script type="module" crossorigin src="/fontanelle_pa/assets/index-BlbcCAZg.js"></script>
+    <link rel="stylesheet" crossorigin href="/fontanelle_pa/assets/index-9kceiYTh.css">
   <link rel="manifest" href="/fontanelle_pa/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/fontanelle_pa/registerSW.js"></script></head>
   <body>
     <div id="app">
-      <div id="map"></div>
+      <div id="map">
+        <div id="isochrone-legend" class="map-legend">
+          <div class="legend-item"><span class="legend-swatch" style="background: #2ecc71"></span>Isocrona 5 min</div>
+          <div class="legend-item"><span class="legend-swatch" style="background: #f1c40f"></span>Isocrona 10 min</div>
+        </div>
+      </div>
       <aside id="panel">
         <nav id="panel-tabs">
           <button data-tab="fontanelle" class="active">Fontanelle</button>
@@ -25,6 +30,8 @@
             <select id="filter-quartiere"><option value="">Tutti</option></select>
             <label for="filter-search">Cerca indirizzo</label>
             <input id="filter-search" type="search" placeholder="es. Via Roma" />
+            <label for="filter-fontanella">Fontanella</label>
+            <select id="filter-fontanella"><option value="">Tutte</option></select>
           </div>
           <div id="isochrone-toggles">
             <label><input type="checkbox" data-isochrone-toggle="5" /> Isocrone 5 min</label>
