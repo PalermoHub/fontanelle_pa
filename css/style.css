@@ -439,6 +439,17 @@ body.theme-dark .pf-thumb {
   font-weight: 600;
 }
 
+.tools-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.tools-list li {
+  margin-bottom: 0.3rem;
+}
+
 .pf-lightbox {
   position: fixed;
   inset: 0;
