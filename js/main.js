@@ -167,6 +167,38 @@ function renderStatsPanel(viewModel) {
   wireStatsInteractions(statsBlock);
 }
 
+function wirePanelTabs() {
+  const tabs = document.querySelectorAll(".panel-tab");
+  const panes = document.querySelectorAll(".panel-tab-pane");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.toggle("active", t === tab));
+      panes.forEach((pane) => {
+        const active = pane.dataset.pane === tab.dataset.tab;
+        pane.classList.toggle("active", active);
+        pane.hidden = !active;
+      });
+    });
+  });
+}
+
+function wirePanelToggle() {
+  const panelEl = document.getElementById("panel");
+  const toggleBtn = document.getElementById("panel-toggle");
+  if (!panelEl || !toggleBtn) return;
+
+  function setPanelOpen(open) {
+    panelEl.classList.toggle("closed", !open);
+    document.body.classList.toggle("panel-closed", !open);
+    toggleBtn.textContent = open ? "›" : "‹";
+    toggleBtn.title = open ? "Chiudi pannello" : "Apri pannello";
+  }
+
+  toggleBtn.addEventListener("click", () =>
+    setPanelOpen(panelEl.classList.contains("closed"))
+  );
+}
+
 function addSelectOption(selectEl, value) {
   const option = document.createElement("option");
   option.value = value;
@@ -527,6 +559,8 @@ async function main() {
 
   populateFilterOptions(fontanelle);
   renderStatsPanel(buildStatsViewModel(stats));
+  wirePanelTabs();
+  wirePanelToggle();
   wireIsochroneToggles(map, selection);
   wireFilters(map, fontanelle, selection);
   wireSearch({

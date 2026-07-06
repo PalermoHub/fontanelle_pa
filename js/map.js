@@ -227,13 +227,19 @@ export async function initMap({
   map.touchZoomRotate.disableRotation();
   map.keyboard.disableRotation();
 
-  // MapLibre apre da solo l'attribuzione compatta al primo render
-  // (vedi AttributionControl._updateCompact): forziamola chiusa.
-  const attribEl = map.getContainer().querySelector(".maplibregl-ctrl-attrib");
-  attribEl?.classList.remove("maplibregl-compact-show");
-  attribEl?.removeAttribute("open");
+  // MapLibre riapre l'attribuzione compatta a ogni evento "styledata" durante
+  // il caricamento (vedi AttributionControl._updateCompact): va richiusa dopo
+  // ogni evento, non solo una volta subito dopo la creazione della mappa.
+  const closeAttribution = () => {
+    const attribEl = map.getContainer().querySelector(".maplibregl-ctrl-attrib");
+    attribEl?.classList.remove("maplibregl-compact-show");
+    attribEl?.removeAttribute("open");
+  };
+  closeAttribution();
+  map.on("styledata", closeAttribution);
 
   await new Promise((resolve) => map.on("load", resolve));
+  map.off("styledata", closeAttribution);
 
   addDataLayers(map);
 

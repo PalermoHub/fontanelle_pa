@@ -141,8 +141,27 @@
         </div>
       </div>
       <aside id="panel">
-        <div id="panel-content">
+        <button id="panel-toggle" title="Chiudi pannello">›</button>
+        <div id="panel-tabs">
+		 <button class="panel-tab" data-tab="progetto">Progetto</button>
+          <button class="panel-tab active" data-tab="stats">Statistiche</button>
+          <button class="panel-tab" data-tab="plasticfree">PlasticFree</button>
+          <button class="panel-tab" data-tab="credits">Credits</button>
+        </div>
+        <div id="panel-content" class="panel-tab-pane active" data-pane="stats">
           <input id="filter-search" type="hidden" />
+        </div>
+        <div id="panel-plasticfree" class="panel-tab-pane" data-pane="plasticfree" hidden>
+          <h2>♻️ PlasticFree</h2>
+          <p class="panel-subtitle">Contenuto in arrivo.</p>
+        </div>
+        <div id="panel-progetto" class="panel-tab-pane" data-pane="progetto" hidden>
+          <h2>📌 Progetto</h2>
+          <p class="panel-subtitle">Contenuto in arrivo.</p>
+        </div>
+        <div id="panel-credits" class="panel-tab-pane" data-pane="credits" hidden>
+          <h2>🙏 Credits</h2>
+          <p class="panel-subtitle">Contenuto in arrivo.</p>
         </div>
       </aside>
     </div>
