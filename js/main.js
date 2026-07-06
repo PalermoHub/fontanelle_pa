@@ -253,6 +253,10 @@ function wirePanelToggle() {
   toggleBtn.addEventListener("click", () =>
     setPanelOpen(panelEl.classList.contains("closed"))
   );
+
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    setPanelOpen(false);
+  }
 }
 
 function addSelectOption(selectEl, value) {

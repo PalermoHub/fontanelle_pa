@@ -1049,3 +1049,38 @@ body.theme-dark .pf-thumb {
   min-width: 28px;
   text-align: right;
 }
+
+@media (max-width: 768px) {
+  #map-top-bar {
+    left: 0;
+    top: 70px;
+    transform: none;
+  }
+
+  #map-toolbar {
+    flex-direction: column;
+    border-radius: 0 0 4px 0;
+  }
+
+  .theme-btn-group {
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+
+  .toolbar-sep {
+    width: 20px;
+    height: 1px;
+    margin: 0.1rem 0;
+  }
+
+  .zoom-wrap {
+    margin: 0.2rem 0;
+  }
+
+  #zoom-slider {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: 20px;
+    height: 80px;
+  }
+}
