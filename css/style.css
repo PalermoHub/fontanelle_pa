@@ -936,6 +936,11 @@ body.theme-dark .pf-thumb {
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+  transition: opacity 0.15s;
+}
+
+.biv-dot-dim {
+  opacity: 0.25;
 }
 
 .biv-grid-xticks {
@@ -998,6 +1003,10 @@ body.theme-dark .pf-thumb {
   filter: brightness(1.15);
 }
 
+.donut-seg.donut-dim {
+  opacity: 0.25;
+}
+
 .donut-total {
   font-size: 16px;
   font-weight: 700;
@@ -1021,11 +1030,15 @@ body.theme-dark .pf-thumb {
   padding: 0.2rem 0.25rem;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.12s, opacity 0.15s;
 }
 
 .donut-leg-row:hover {
   background: rgba(127, 127, 127, 0.12);
+}
+
+.donut-leg-row.donut-dim {
+  opacity: 0.4;
 }
 
 .donut-dot {

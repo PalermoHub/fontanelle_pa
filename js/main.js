@@ -255,6 +255,15 @@ function computeQuartiereCounts(fontanelle, circoscrizione) {
     .sort((a, b) => b.count - a.count);
 }
 
+function updateStatsDimming(circoscrizione) {
+  document.querySelectorAll(".donut-seg[data-circ], .donut-leg-row[data-circ]").forEach((node) => {
+    node.classList.toggle("donut-dim", Boolean(circoscrizione) && node.dataset.circ !== circoscrizione);
+  });
+  document.querySelectorAll(".biv-dot[data-circ]").forEach((node) => {
+    node.classList.toggle("biv-dot-dim", Boolean(circoscrizione) && node.dataset.circ !== circoscrizione);
+  });
+}
+
 function refreshStatsScope(fontanelle) {
   const circoscrizioneSelect = document.querySelector("#filter-circoscrizione");
   const container = document.querySelector("#quartiere-rank-container");
@@ -263,6 +272,7 @@ function refreshStatsScope(fontanelle) {
   const circ = circoscrizioneSelect.value;
   container.innerHTML = buildQuartiereRanking(computeQuartiereCounts(fontanelle, circ));
   wireStatsInteractions(container, fontanelle);
+  updateStatsDimming(circ);
 }
 
 // Click su segmento/legenda donut o riga classifica → riusa i filtri
