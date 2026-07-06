@@ -239,6 +239,32 @@ function buildQuartiereCircMap(fontanelle) {
   return map;
 }
 
+// Sostituisce viewModel.perQuartiere (aggregato globale da stats.json)
+// quando è attivo un filtro circoscrizione: ricalcola dai dati live così
+// il pannello resta sempre coerente con ciò che la mappa mostra.
+function computeQuartiereCounts(fontanelle, circoscrizione) {
+  const counts = new Map();
+  for (const f of fontanelle.features) {
+    const { quartiere, circoscrizione: circ } = f.properties;
+    if (!quartiere) continue;
+    if (circoscrizione && circ !== circoscrizione) continue;
+    counts.set(quartiere, (counts.get(quartiere) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([quartiere, count]) => ({ quartiere, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function refreshStatsScope(fontanelle) {
+  const circoscrizioneSelect = document.querySelector("#filter-circoscrizione");
+  const container = document.querySelector("#quartiere-rank-container");
+  if (!container) return;
+
+  const circ = circoscrizioneSelect.value;
+  container.innerHTML = buildQuartiereRanking(computeQuartiereCounts(fontanelle, circ));
+  wireStatsInteractions(container, fontanelle);
+}
+
 // Click su segmento/legenda donut o riga classifica → riusa i filtri
 // circoscrizione/quartiere già esistenti (stesso comportamento del
 // pannello bivariate: "clicca per filtrare la mappa"). Il click sulla
@@ -306,7 +332,7 @@ function renderStatsPanel(viewModel, fontanelle) {
     </div>
     <hr class="sep">
     <div class="fsec">
-      ${buildQuartiereRanking(viewModel.perQuartiere)}
+      <div id="quartiere-rank-container">${buildQuartiereRanking(viewModel.perQuartiere)}</div>
     </div>
     <hr class="sep">
     <div class="fsec">
@@ -613,6 +639,7 @@ function wireFilters(map, fontanelle, selection) {
       query: searchInput.value,
       fontanellaId: fontanellaSelect.value,
     });
+    refreshStatsScope(fontanelle);
   }
 
   selection.refresh = applyFilters;
