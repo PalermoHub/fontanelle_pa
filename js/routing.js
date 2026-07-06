@@ -49,8 +49,8 @@ export function buildRoutingIndex(graph) {
     adjacency.set(node.id, []);
   }
   for (const edge of graph.edges) {
-    adjacency.get(edge.u)?.push({ to: edge.v, lenM: edge.len_m });
-    adjacency.get(edge.v)?.push({ to: edge.u, lenM: edge.len_m });
+    adjacency.get(edge.u)?.push({ to: edge.v, lenM: edge.len_m, weightSec: edge.weight_sec });
+    adjacency.get(edge.v)?.push({ to: edge.u, lenM: edge.len_m, weightSec: edge.weight_sec });
   }
   const fontanellaByNode = new Map();
   for (const [fontanellaId, nodeId] of Object.entries(graph.fontanellaNodes)) {
@@ -73,19 +73,24 @@ export function findNearestNodeId(point, nodeCoord) {
   return nearestId;
 }
 
-export function shortestPathToNearestFontanella(startNodeId, index) {
+// Costo in secondi (pesato sulla pendenza reale, vedi scripts/build_rete_stradale.py),
+// non sulla distanza in metri: due percorsi di pari lunghezza in salita/pianura
+// impiegano tempi diversi, quindi il Dijkstra deve minimizzare il tempo.
+export function shortestPathToNearestFontanella(startNodeId, index, maxSeconds = Infinity) {
   const { adjacency, fontanellaByNode, nodeCoord } = index;
   if (!adjacency.has(startNodeId)) return null;
 
-  const dist = new Map([[startNodeId, 0]]);
+  const timeSec = new Map([[startNodeId, 0]]);
+  const lenM = new Map([[startNodeId, 0]]);
   const prev = new Map();
   const visited = new Set();
   const heap = new MinHeap();
   heap.push(0, startNodeId);
 
   while (heap.size > 0) {
-    const { priority: d, value: nodeId } = heap.pop();
+    const { priority: t, value: nodeId } = heap.pop();
     if (visited.has(nodeId)) continue;
+    if (t > maxSeconds) break;
     visited.add(nodeId);
 
     if (fontanellaByNode.has(nodeId)) {
@@ -97,26 +102,38 @@ export function shortestPathToNearestFontanella(startNodeId, index) {
       }
       return {
         fontanellaId: fontanellaByNode.get(nodeId)[0],
-        distanceMeters: d,
+        distanceMeters: lenM.get(nodeId),
+        durationSeconds: t,
         pathCoordinates: pathNodeIds.map((id) => nodeCoord.get(id)),
       };
     }
 
-    for (const { to, lenM } of adjacency.get(nodeId) || []) {
+    for (const { to, lenM: edgeLenM, weightSec } of adjacency.get(nodeId) || []) {
       if (visited.has(to)) continue;
-      const newDist = d + lenM;
-      if (newDist < (dist.get(to) ?? Infinity)) {
-        dist.set(to, newDist);
+      const newTime = t + weightSec;
+      if (newTime > maxSeconds) continue;
+      if (newTime < (timeSec.get(to) ?? Infinity)) {
+        timeSec.set(to, newTime);
+        lenM.set(to, lenM.get(nodeId) + edgeLenM);
         prev.set(to, nodeId);
-        heap.push(newDist, to);
+        heap.push(newTime, to);
       }
     }
   }
   return null;
 }
 
+// Raggio "ridotto" ma progressivo: prova prima un cutoff breve (rete locale
+// attorno al punto), e lo allarga solo se non trova nessuna fontanella entro
+// quel tempo — evita di esplorare l'intero grafo cittadino nel caso comune.
+const SEARCH_CUTOFFS_SECONDS = [900, 1800, 3600, Infinity];
+
 export function findRouteToNearestFontanella(startPoint, index) {
   const startNodeId = findNearestNodeId(startPoint, index.nodeCoord);
   if (startNodeId == null) return null;
-  return shortestPathToNearestFontanella(startNodeId, index);
+  for (const maxSeconds of SEARCH_CUTOFFS_SECONDS) {
+    const route = shortestPathToNearestFontanella(startNodeId, index, maxSeconds);
+    if (route) return route;
+  }
+  return null;
 }
