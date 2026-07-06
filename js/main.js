@@ -182,6 +182,41 @@ function wirePanelTabs() {
   });
 }
 
+function wirePlasticFreeGallery() {
+  const lightbox = document.getElementById("pf-lightbox");
+  const lightboxImg = document.getElementById("pf-lightbox-img");
+  const lightboxCaption = document.getElementById("pf-lightbox-caption");
+  const closeBtn = lightbox?.querySelector(".pf-lightbox-close");
+  if (!lightbox || !lightboxImg || !lightboxCaption || !closeBtn) return;
+
+  function open(src, caption) {
+    lightboxImg.src = src;
+    lightboxImg.alt = caption;
+    lightboxCaption.textContent = caption;
+    lightbox.hidden = false;
+  }
+
+  function close() {
+    lightbox.hidden = true;
+    lightboxImg.src = "";
+  }
+
+  document.querySelectorAll(".pf-thumb").forEach((thumb) => {
+    thumb.addEventListener("click", () => {
+      const img = thumb.querySelector("img");
+      open(img.src, thumb.dataset.caption || img.alt);
+    });
+  });
+
+  closeBtn.addEventListener("click", close);
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !lightbox.hidden) close();
+  });
+}
+
 function wirePanelToggle() {
   const panelEl = document.getElementById("panel");
   const toggleBtn = document.getElementById("panel-toggle");
@@ -560,6 +595,7 @@ async function main() {
   populateFilterOptions(fontanelle);
   renderStatsPanel(buildStatsViewModel(stats));
   wirePanelTabs();
+  wirePlasticFreeGallery();
   wirePanelToggle();
   wireIsochroneToggles(map, selection);
   wireFilters(map, fontanelle, selection);
