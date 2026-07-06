@@ -424,7 +424,39 @@ export function setBasemapTheme(map, theme) {
   });
 }
 
-export function setRouteLine(map, coordinates) {
+// Il profilo altimetrico (array di punti) non sopravvive in modo affidabile
+// al giro per le proprieta' della source GeoJSON (pensata per valori scalari),
+// quindi le statistiche del percorso restano qui e non nel feature stesso:
+// il click handler legge sempre la versione piu' recente.
+let currentRouteStats = null;
+
+function buildElevationChartSvg(profile) {
+  const width = 220;
+  const height = 56;
+  const distances = profile.map((p) => p.distanceMeters);
+  const elevations = profile.map((p) => p.elevationMeters);
+  const maxDist = Math.max(1, distances[distances.length - 1]);
+  const minEle = Math.min(...elevations);
+  const maxEle = Math.max(...elevations);
+  const eleRange = Math.max(1, maxEle - minEle);
+
+  const toX = (d) => (d / maxDist) * width;
+  const toY = (e) => height - ((e - minEle) / eleRange) * height;
+
+  const linePoints = profile.map((p) => `${toX(p.distanceMeters).toFixed(1)},${toY(p.elevationMeters).toFixed(1)}`);
+  const areaPoints = [`0,${height}`, ...linePoints, `${width},${height}`].join(" ");
+
+  return `
+    <svg class="route-elevation-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      <polygon points="${areaPoints}" fill="#e74c3c" fill-opacity="0.15" />
+      <polyline points="${linePoints.join(" ")}" fill="none" stroke="#e74c3c" stroke-width="2" />
+    </svg>
+    <div class="route-elevation-labels"><span>${minEle.toFixed(0)} m</span><span>${maxEle.toFixed(0)} m</span></div>
+  `;
+}
+
+export function setRouteLine(map, coordinates, stats = {}) {
+  currentRouteStats = stats;
   const geojson = {
     type: "Feature",
     geometry: { type: "LineString", coordinates },
@@ -443,9 +475,41 @@ export function setRouteLine(map, coordinates) {
     layout: { "line-cap": "round", "line-join": "round" },
     paint: { "line-color": "#e74c3c", "line-width": 4, "line-opacity": 0.85 },
   });
+
+  map.on("mouseenter", "percorso-fontanella-line", () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+  map.on("mouseleave", "percorso-fontanella-line", () => {
+    map.getCanvas().style.cursor = "";
+  });
+  map.on("click", "percorso-fontanella-line", (e) => {
+    const props = currentRouteStats;
+    if (!props) return;
+    const km = (props.lengthMeters / 1000).toFixed(2);
+    const minuti = Math.round(props.durationSeconds / 60);
+    const secondi = Math.round(props.durationSeconds % 60);
+    const tempoLabel = minuti > 0 ? `${minuti} min ${secondi} s` : `${secondi} s`;
+    const chartHtml = props.elevationProfile ? buildElevationChartSvg(props.elevationProfile) : "";
+    new maplibregl.Popup({ closeButton: true })
+      .setLngLat(e.lngLat)
+      .setHTML(`
+        <div class="route-popup">
+          <h3>Verso: ${props.destinationLabel || "fontanella"}</h3>
+          <dl>
+            <dt>Lunghezza</dt><dd>${km} km</dd>
+            <dt>Tempo stimato</dt><dd>${tempoLabel}</dd>
+            <dt>Pendenza media / max</dt><dd>${props.avgSlopePercent.toFixed(1)}% / ${props.maxSlopePercent.toFixed(1)}%</dd>
+            <dt>Dislivello ↑ / ↓</dt><dd>${props.ascentMeters.toFixed(0)} m / ${props.descentMeters.toFixed(0)} m</dd>
+          </dl>
+          ${chartHtml}
+        </div>
+      `)
+      .addTo(map);
+  });
 }
 
 export function clearRouteLine(map) {
+  currentRouteStats = null;
   const source = map.getSource("percorso-fontanella");
   if (source) source.setData({ type: "FeatureCollection", features: [] });
 }

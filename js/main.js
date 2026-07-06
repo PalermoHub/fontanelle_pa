@@ -803,8 +803,9 @@ function wireMapToolbar(map) {
   applyTheme(localStorage.getItem("fontanelle-theme") || "light");
 }
 
-function wireGeolocation(map) {
+function wireGeolocation(map, fontanelle) {
   const button = document.querySelector("#locate-nearest");
+  const fontanellaById = new Map(fontanelle.features.map((f) => [f.properties.id, f.properties]));
   let routingIndex = null;
   let awaitingMapClick = false;
 
@@ -823,7 +824,19 @@ function wireGeolocation(map) {
       window.alert("Percorso non disponibile: nessuna fontanella raggiungibile da questo punto.");
       return;
     }
-    setRouteLine(map, route.pathCoordinates);
+    const destinazione = fontanellaById.get(route.fontanellaId);
+    setRouteLine(map, route.pathCoordinates, {
+      lengthMeters: route.distanceMeters,
+      durationSeconds: route.durationSeconds,
+      avgSlopePercent: route.avgSlopePercent,
+      maxSlopePercent: route.maxSlopePercent,
+      ascentMeters: route.ascentMeters,
+      descentMeters: route.descentMeters,
+      elevationProfile: route.elevationProfile,
+      destinationLabel: destinazione
+        ? `${destinazione.indirizzo}${destinazione.quartiere ? ` (${destinazione.quartiere})` : ""}`
+        : `Fontanella #${route.fontanellaId}`,
+    });
     const bounds = route.pathCoordinates.reduce(
       (b, coord) => b.extend(coord),
       new maplibregl.LngLatBounds(route.pathCoordinates[0], route.pathCoordinates[0])
@@ -895,7 +908,7 @@ async function main() {
     refreshCascade: selection.refreshCascade,
     onApply: selection.refresh,
   });
-  wireGeolocation(map);
+  wireGeolocation(map, fontanelle);
 }
 
 main();

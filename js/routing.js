@@ -43,21 +43,23 @@ class MinHeap {
 
 export function buildRoutingIndex(graph) {
   const nodeCoord = new Map();
+  const nodeEle = new Map();
   const adjacency = new Map();
   for (const node of graph.nodes) {
     nodeCoord.set(node.id, [node.lon, node.lat]);
+    nodeEle.set(node.id, node.ele ?? 0);
     adjacency.set(node.id, []);
   }
   for (const edge of graph.edges) {
-    adjacency.get(edge.u)?.push({ to: edge.v, lenM: edge.len_m, weightSec: edge.weight_sec });
-    adjacency.get(edge.v)?.push({ to: edge.u, lenM: edge.len_m, weightSec: edge.weight_sec });
+    adjacency.get(edge.u)?.push({ to: edge.v, lenM: edge.len_m, weightSec: edge.weight_sec, slopePct: edge.slope_pct });
+    adjacency.get(edge.v)?.push({ to: edge.u, lenM: edge.len_m, weightSec: edge.weight_sec, slopePct: edge.slope_pct });
   }
   const fontanellaByNode = new Map();
   for (const [fontanellaId, nodeId] of Object.entries(graph.fontanellaNodes)) {
     if (!fontanellaByNode.has(nodeId)) fontanellaByNode.set(nodeId, []);
     fontanellaByNode.get(nodeId).push(fontanellaId);
   }
-  return { nodeCoord, adjacency, fontanellaByNode };
+  return { nodeCoord, nodeEle, adjacency, fontanellaByNode };
 }
 
 export function findNearestNodeId(point, nodeCoord) {
@@ -73,11 +75,49 @@ export function findNearestNodeId(point, nodeCoord) {
   return nearestId;
 }
 
+// Ricava pendenza media/massima e profilo altimetrico (distanza cumulata + quota
+// per nodo, dislivelli in salita/discesa) lungo il percorso finale, riguardando
+// gli archi effettivamente attraversati (il Dijkstra non li tiene traccia
+// mentre esplora, solo a percorso trovato).
+function segmentStats(pathNodeIds, adjacency, nodeEle) {
+  let weightedSlopeSum = 0;
+  let lengthSum = 0;
+  let maxSlopePercent = 0;
+  let ascentMeters = 0;
+  let descentMeters = 0;
+  const elevationProfile = [{ distanceMeters: 0, elevationMeters: nodeEle.get(pathNodeIds[0]) ?? 0 }];
+
+  for (let i = 0; i < pathNodeIds.length - 1; i++) {
+    const from = pathNodeIds[i];
+    const to = pathNodeIds[i + 1];
+    const edge = (adjacency.get(from) || []).find((e) => e.to === to);
+    if (!edge) continue;
+    weightedSlopeSum += edge.slopePct * edge.lenM;
+    lengthSum += edge.lenM;
+    maxSlopePercent = Math.max(maxSlopePercent, edge.slopePct);
+
+    const eleFrom = nodeEle.get(from) ?? 0;
+    const eleTo = nodeEle.get(to) ?? 0;
+    const delta = eleTo - eleFrom;
+    if (delta > 0) ascentMeters += delta;
+    else descentMeters += -delta;
+    elevationProfile.push({ distanceMeters: lengthSum, elevationMeters: eleTo });
+  }
+
+  return {
+    avgSlopePercent: lengthSum > 0 ? weightedSlopeSum / lengthSum : 0,
+    maxSlopePercent,
+    ascentMeters,
+    descentMeters,
+    elevationProfile,
+  };
+}
+
 // Costo in secondi (pesato sulla pendenza reale, vedi scripts/build_rete_stradale.py),
 // non sulla distanza in metri: due percorsi di pari lunghezza in salita/pianura
 // impiegano tempi diversi, quindi il Dijkstra deve minimizzare il tempo.
 export function shortestPathToNearestFontanella(startNodeId, index, maxSeconds = Infinity) {
-  const { adjacency, fontanellaByNode, nodeCoord } = index;
+  const { adjacency, fontanellaByNode, nodeCoord, nodeEle } = index;
   if (!adjacency.has(startNodeId)) return null;
 
   const timeSec = new Map([[startNodeId, 0]]);
@@ -105,6 +145,7 @@ export function shortestPathToNearestFontanella(startNodeId, index, maxSeconds =
         distanceMeters: lenM.get(nodeId),
         durationSeconds: t,
         pathCoordinates: pathNodeIds.map((id) => nodeCoord.get(id)),
+        ...segmentStats(pathNodeIds, adjacency, nodeEle),
       };
     }
 

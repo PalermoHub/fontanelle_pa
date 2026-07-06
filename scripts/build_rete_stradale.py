@@ -15,6 +15,7 @@ from osgeo import ogr, osr
 REPO = Path(__file__).resolve().parents[1]
 GPKG = Path("/home/coseerobe/GitHub-Clone/coseerobe/Rete-Stradale/dati_qgis/082053_Palermo-2026-07-01T09Z.gpkg")
 SLOPE_TIF = Path("/home/coseerobe/GitHub-Clone/coseerobe/palermo_dtm_5m/dati/analisi/slope_percent.tif")
+DTM_TIF = Path("/home/coseerobe/GitHub-Clone/coseerobe/palermo_dtm_5m/dati/palermo_dtm5m.tif")
 FONTANELLE_JSON = REPO / "geo" / "fontanelle.geojson"
 OUT_JSON = REPO / "geo" / "rete_stradale.json"
 
@@ -53,8 +54,10 @@ def tobler_speed_kmh(slope_ratio):
     return FLAT_WALK_KMH * (base / flat)
 
 
-class SlopeSampler:
-    def __init__(self, tif_path):
+class RasterSampler:
+    """Campiona un raster mono-banda in lon/lat WGS84, con cache per pixel."""
+
+    def __init__(self, tif_path, valid_min, valid_max, fallback=0.0):
         from osgeo import gdal
 
         self.ds = gdal.Open(str(tif_path))
@@ -62,6 +65,9 @@ class SlopeSampler:
         self.band = self.ds.GetRasterBand(1)
         self.xsize = self.ds.RasterXSize
         self.ysize = self.ds.RasterYSize
+        self.valid_min = valid_min
+        self.valid_max = valid_max
+        self.fallback = fallback
         wgs84 = osr.SpatialReference()
         wgs84.ImportFromEPSG(4326)
         wgs84.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
@@ -70,19 +76,19 @@ class SlopeSampler:
         self.transform = osr.CoordinateTransformation(wgs84, raster_srs)
         self._cache = {}
 
-    def sample_percent(self, lon, lat):
+    def sample(self, lon, lat):
         x, y, _ = self.transform.TransformPoint(lon, lat)
         gt = self.gt
         px = int((x - gt[0]) / gt[1])
         py = int((y - gt[3]) / gt[5])
         if px < 0 or py < 0 or px >= self.xsize or py >= self.ysize:
-            return 0.0
+            return self.fallback
         key = (px, py)
         if key not in self._cache:
             val = self.band.ReadAsArray(px, py, 1, 1)
-            v = float(val[0][0]) if val is not None else 0.0
-            if v < 0 or v > 300 or math.isnan(v):
-                v = 0.0
+            v = float(val[0][0]) if val is not None else self.fallback
+            if v < self.valid_min or v > self.valid_max or math.isnan(v):
+                v = self.fallback
             self._cache[key] = v
         return self._cache[key]
 
@@ -108,7 +114,7 @@ def load_ways():
     return ways
 
 
-def build_graph(ways, sampler):
+def build_graph(ways, slope_sampler, ele_sampler):
     node_id_by_key = {}
     nodes = []
 
@@ -118,7 +124,8 @@ def build_graph(ways, sampler):
         if nid is None:
             nid = len(nodes)
             node_id_by_key[key] = nid
-            nodes.append({"id": nid, "lon": key[0], "lat": key[1]})
+            ele_m = ele_sampler.sample(key[0], key[1])
+            nodes.append({"id": nid, "lon": key[0], "lat": key[1], "ele": round(ele_m, 1)})
         return nid
 
     edges = []
@@ -138,7 +145,7 @@ def build_graph(ways, sampler):
 
             length_m = haversine_m(a, b)
             mid_lon, mid_lat = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
-            slope_pct = sampler.sample_percent(mid_lon, mid_lat)
+            slope_pct = slope_sampler.sample(mid_lon, mid_lat)
             speed_kmh = tobler_speed_kmh(slope_pct / 100.0)
             weight_sec = (length_m / 1000.0) / speed_kmh * 3600.0
             if is_steps:
@@ -148,6 +155,7 @@ def build_graph(ways, sampler):
                 "u": u, "v": v,
                 "len_m": round(length_m, 1),
                 "weight_sec": round(weight_sec, 2),
+                "slope_pct": round(slope_pct, 1),
             })
     return nodes, edges
 
@@ -172,9 +180,10 @@ def main():
     ways = load_ways()
     print(f"  {len(ways)} way percorribili")
 
-    print("Campiono pendenza e costruisco grafo...")
-    sampler = SlopeSampler(SLOPE_TIF)
-    nodes, edges = build_graph(ways, sampler)
+    print("Campiono pendenza e quota, costruisco grafo...")
+    slope_sampler = RasterSampler(SLOPE_TIF, valid_min=0, valid_max=300, fallback=0.0)
+    ele_sampler = RasterSampler(DTM_TIF, valid_min=-10, valid_max=1200, fallback=0.0)
+    nodes, edges = build_graph(ways, slope_sampler, ele_sampler)
     print(f"  {len(nodes)} nodi, {len(edges)} archi")
 
     print("Aggancio fontanelle ai nodi piu' vicini...")

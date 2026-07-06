@@ -543,6 +543,51 @@ body.theme-dark .pf-thumb {
   font-weight: bold;
 }
 
+.route-popup {
+  max-width: 220px;
+  color: #1a1a1a;
+}
+
+.route-popup h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #1a1a1a;
+}
+
+.route-popup dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 0.6rem;
+}
+
+.route-popup dt {
+  font-weight: bold;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+.route-popup dd {
+  margin: 0;
+  color: #1a1a1a;
+  text-align: right;
+}
+
+.route-elevation-chart {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin-top: 0.6rem;
+}
+
+.route-elevation-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #777;
+  margin-top: 0.1rem;
+}
+
 #map-top-bar {
   position: absolute;
   top: 8px;
