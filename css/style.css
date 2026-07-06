@@ -143,6 +143,38 @@ body.panel-closed #panel-toggle {
   right: 0;
 }
 
+#map-logos {
+  position: absolute;
+  right: calc(314px + 10px);
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: right 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+body.panel-closed #map-logos {
+  right: 10px;
+}
+
+#map-logos a {
+  display: block;
+  width: 100px;
+  height: 100px;
+}
+
+#map-logos img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+#map-logos .logo-ondata {
+  height: 21px;
+}
+
 #panel-toggle:hover {
   background: #f0f0f0;
 }
