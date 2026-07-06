@@ -837,6 +837,99 @@ body.theme-dark .pf-thumb {
   font-weight: 700;
 }
 
+/* Griglia bivariata "offerta × carico" copertura, stessa geometria/palette
+   della legenda 3×3 di bivariate/tpl, riadattata alle 8 circoscrizioni. */
+.biv-grid-card {
+  margin-bottom: 0.75rem;
+}
+
+.biv-grid-intro {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin: 0 0 0.6rem;
+}
+
+.biv-grid-axes {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.biv-grid-ylabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.biv-grid-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.biv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  aspect-ratio: 1 / 1;
+  gap: 3px;
+  width: 100%;
+}
+
+.biv-cell {
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px;
+  cursor: help;
+}
+
+.biv-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.biv-grid-xticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+.biv-grid-xlabel {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+.biv-grid-note {
+  font-size: 0.7rem;
+  opacity: 0.75;
+  margin-top: 0.5rem;
+}
+
 .stats-table tbody tr:nth-child(even) {
   background: rgba(127, 127, 127, 0.06);
 }

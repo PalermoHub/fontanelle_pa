@@ -117,6 +117,105 @@ function buildQuartiereRanking(rows) {
   </div>`;
 }
 
+// Dati fissi copertura per circoscrizione (fontanelle, residenti, residenti/fontanella).
+// TODO: spostare in stats.js/data.json quando disponibile una fonte viva.
+const COPERTURA_ROWS = [
+  { circ: "I", fontanelle: 25, residenti: 26685, ratio: 1067 },
+  { circ: "VII", fontanelle: 39, residenti: 78533, ratio: 2013 },
+  { circ: "II", fontanelle: 26, residenti: 73483, ratio: 2826 },
+  { circ: "IV", fontanelle: 21, residenti: 103058, ratio: 4907 },
+  { circ: "III", fontanelle: 9, residenti: 74825, ratio: 8313 },
+  { circ: "VI", fontanelle: 8, residenti: 73241, ratio: 9155 },
+  { circ: "VIII", fontanelle: 12, residenti: 121262, ratio: 10105 },
+  { circ: "V", fontanelle: 10, residenti: 114443, ratio: 11444 },
+];
+
+// Palette 3×3 identica a bivariate/tpl: blu = combinazione "gestita bene",
+// arancio = combinazione critica (poche fontanelle, tanti residenti a testa).
+const BIVAR_GRID_COLORS = [
+  ["#f0ece4", "#e8d0a4", "#c89050"], // offerta bassa (riga 1)
+  ["#c8d8d4", "#a8b8b0", "#809098"], // offerta media (riga 2)
+  ["#7ab8c8", "#5898a8", "#306878"], // offerta alta (riga 3)
+];
+
+// Classifica ogni valore in basso/medio/alto (tercili per rango, non per
+// quantità: con 8 elementi dà gruppi 3-3-2, robusto a pochi dati).
+function classifyTercile(values, value) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const rank = sorted.indexOf(value);
+  return Math.min(2, Math.floor((rank * 3) / sorted.length));
+}
+
+const TERCILE_LABEL = ["basso", "medio", "alto"];
+
+// Spiegazione testuale per cella, usata come tooltip: aiuta a leggere la
+// griglia senza dover indovinare cosa significa una combinazione offerta/carico.
+function cellDescription(yOfferta, xCarico) {
+  const offertaLbl = TERCILE_LABEL[yOfferta];
+  const caricoLbl = TERCILE_LABEL[xCarico];
+  let verdict = "";
+  if (yOfferta === 2 && xCarico === 0) verdict = " — situazione migliore: tante fontanelle, poca gente da servire";
+  else if (yOfferta === 0 && xCarico === 2) verdict = " — situazione critica: poche fontanelle dove il carico è più alto";
+  else if (yOfferta === 2 && xCarico === 2) verdict = " — carico alto ma ben coperto";
+  else if (yOfferta === 0 && xCarico === 0) verdict = " — poca gente, poche fontanelle: non è un problema";
+  return `Offerta ${offertaLbl} / Carico ${caricoLbl}${verdict}`;
+}
+
+// Testo tooltip dati grezzi di una circoscrizione, condiviso da pallino e cella
+// (la cella lo usa in coda alla descrizione, così i numeri sono visibili anche
+// senza dover passare sopra ogni singolo pallino).
+function dotTooltip(row) {
+  return `Circ. ${row.circ}: ${row.fontanelle} fontanelle, ${row.residenti.toLocaleString("it-IT")} residenti, ${row.ratio.toLocaleString("it-IT")} residenti/fontanella`;
+}
+
+// Griglia bivariata "offerta (fontanelle) × carico (residenti/fontanella)",
+// stessa lettura della legenda 3×3 di bivariate/tpl: sostituisce la tabella
+// grezza con un colpo d'occhio su dove la copertura è critica.
+function buildCoperturaBivariateGrid(rows) {
+  const ratios = rows.map((r) => r.ratio);
+  const counts = rows.map((r) => r.fontanelle);
+  const cells = Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => []));
+
+  for (const row of rows) {
+    const xCarico = classifyTercile(ratios, row.ratio); // 0 basso → 2 alto
+    const yOfferta = classifyTercile(counts, row.fontanelle); // 0 basso → 2 alto
+    cells[yOfferta][xCarico].push(row);
+  }
+
+  const gridRows = [2, 1, 0]
+    .map((y) =>
+      [0, 1, 2]
+        .map((x) => {
+          const items = cells[y][x];
+          const dots = items
+            .map(
+              (row) =>
+                `<span class="biv-dot" data-circ="${escHtml(row.circ)}" style="background:${CIRC_COLORS[row.circ] || "#999"}" title="${escHtml(dotTooltip(row))}">${escHtml(row.circ)}</span>`
+            )
+            .join("");
+          const cellTitle = `${cellDescription(y, x)}${
+            items.length ? "\n" + items.map((row) => dotTooltip(row)).join("\n") : ""
+          }`;
+          return `<div class="biv-cell" style="background:${BIVAR_GRID_COLORS[y][x]}" title="${escHtml(cellTitle)}">${dots}</div>`;
+        })
+        .join("")
+    )
+    .join("");
+
+  return `<div class="biv-grid-card">
+    <p class="biv-grid-intro">Ogni circoscrizione è un pallino, posizionato incrociando due dati: quante fontanelle ha (offerta) e quanti residenti si dividono ciascuna fontanella (carico). Il colore della cella riassume la combinazione.</p>
+    <div class="biv-grid-axes">
+      <div class="biv-grid-ylabel">Offerta (fontanelle) ↑</div>
+      <div class="biv-grid-main">
+        <div class="biv-grid">${gridRows}</div>
+        <div class="biv-grid-xticks"><span>Basso</span><span>Medio</span><span>Alto</span></div>
+        <div class="biv-grid-xlabel">Carico (residenti/fontanella) →</div>
+      </div>
+    </div>
+    <p class="biv-grid-note"><strong>Passa il mouse</strong> su un pallino per i numeri esatti, su una cella per il significato; <strong>clicca</strong> un pallino per filtrare la mappa su quella circoscrizione. Verso il <strong>blu scuro</strong> = tante fontanelle anche dove il carico è alto; verso l'<strong>arancio</strong> = poche fontanelle proprio dove servirebbero di più.</p>
+  </div>`;
+}
+
 // Click su segmento/legenda donut o riga classifica → riusa i filtri
 // circoscrizione/quartiere già esistenti (stesso comportamento del
 // pannello bivariate: "clicca per filtrare la mappa").
@@ -165,21 +264,8 @@ function renderStatsPanel(viewModel) {
     </div>
     <hr class="sep">
     <div class="fsec">
-      <table class="stats-table">
-        <thead>
-          <tr><th>circoscrizione</th><th>fontanelle</th><th>residenti</th><th>residenti/ fontanella</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>I</td><td>25</td><td>26.685</td><td>1.067</td></tr>
-          <tr><td>VII</td><td>39</td><td>78.533</td><td>2.013</td></tr>
-          <tr><td>II</td><td>26</td><td>73.483</td><td>2.826</td></tr>
-          <tr><td>IV</td><td>21</td><td>103.058</td><td>4.907</td></tr>
-          <tr><td>III</td><td>9</td><td>74.825</td><td>8.313</td></tr>
-          <tr><td>VI</td><td>8</td><td>73.241</td><td>9.155</td></tr>
-          <tr><td>VIII</td><td>12</td><td>121.262</td><td>10.105</td></tr>
-          <tr><td>V</td><td>10</td><td>114.443</td><td>11.444</td></tr>
-        </tbody>
-      </table>
+      <h3>Copertura per circoscrizione</h3>
+      ${buildCoperturaBivariateGrid(COPERTURA_ROWS)}
       <p>Per alcune bastano <strong>5 minuti</strong> a piedi, se ti piace camminare, in <strong>10 minuti</strong> sono ancora di più da tutta la città almeno una in auto in 5 minuti</p>
       <p>Se in un anno l'1% degli abitanti di Palermo cambiasse abitudini 1.500.000 bottiglie di plastica non verrebbero consumate!</p>
     </div>
