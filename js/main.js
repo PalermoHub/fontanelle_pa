@@ -149,6 +149,7 @@ function renderStatsPanel(viewModel) {
   statsBlock.innerHTML = `
     <h2>💧 Fontanelle Palermo</h2>
     <p class="panel-subtitle">Un progetto per scoprire le fontanelle di acqua potabile</p>
+    <p>Puoi non usare l'acqua imbottigliata nella plastica, puoi usare l'acqua pubblica: scopri le fontanelle più vicine a te e aiutaci a scoprire quanto sarebbe bella Palermo senza le montagne di plastica.</p>
     <div class="fsec">
       <h3>Distribuzione per circoscrizione</h3>
       ${buildCircoscrizioneDonut(viewModel.perCircoscrizione)}
@@ -161,6 +162,26 @@ function renderStatsPanel(viewModel) {
     <hr class="sep">
     <div class="fsec">
       ${buildQuartiereRanking(viewModel.perQuartiere)}
+    </div>
+    <hr class="sep">
+    <div class="fsec">
+      <table class="stats-table">
+        <thead>
+          <tr><th>circoscrizione</th><th>fontanelle</th><th>residenti</th><th>residenti/ fontanella</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>I</td><td>25</td><td>26.685</td><td>1.067</td></tr>
+          <tr><td>VII</td><td>39</td><td>78.533</td><td>2.013</td></tr>
+          <tr><td>II</td><td>26</td><td>73.483</td><td>2.826</td></tr>
+          <tr><td>IV</td><td>21</td><td>103.058</td><td>4.907</td></tr>
+          <tr><td>III</td><td>9</td><td>74.825</td><td>8.313</td></tr>
+          <tr><td>VI</td><td>8</td><td>73.241</td><td>9.155</td></tr>
+          <tr><td>VIII</td><td>12</td><td>121.262</td><td>10.105</td></tr>
+          <tr><td>V</td><td>10</td><td>114.443</td><td>11.444</td></tr>
+        </tbody>
+      </table>
+      <p>Per alcune bastano <strong>5 minuti</strong> a piedi, se ti piace camminare, in <strong>10 minuti</strong> sono ancora di più da tutta la città almeno una in auto in 5 minuti</p>
+      <p>Se in un anno l'1% degli abitanti di Palermo cambiasse abitudini 1.500.000 bottiglie di plastica non verrebbero consumate!</p>
     </div>
   `;
   el.appendChild(statsBlock);

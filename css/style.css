@@ -189,6 +189,11 @@ body.theme-dark #panel-toggle:hover {
   padding: 1rem;
 }
 
+.panel-tab-pane p,
+.panel-tab-pane li {
+  font-size: 12px;
+}
+
 body.theme-dark #panel-tabs {
   border-bottom-color: #333;
 }
@@ -767,6 +772,30 @@ body.theme-dark .pf-thumb {
   border: none;
   border-top: 1px solid rgba(127, 127, 127, 0.3);
   margin: 0.75rem 0;
+}
+
+.stats-table {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.stats-table th,
+.stats-table td {
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  padding: 0.3rem 0.4rem;
+  text-align: center;
+  word-break: break-word;
+}
+
+.stats-table thead th {
+  background: rgba(127, 127, 127, 0.15);
+  font-weight: 700;
+}
+
+.stats-table tbody tr:nth-child(even) {
+  background: rgba(127, 127, 127, 0.06);
 }
 
 .donut-card {
