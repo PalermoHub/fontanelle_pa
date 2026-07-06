@@ -71,12 +71,12 @@ function buildCircoscrizioneDonut(rows) {
     const x4 = cx + r * Math.cos(startAngle), y4 = cy + r * Math.sin(startAngle);
     const largeArc = angle > Math.PI ? 1 : 0;
     paths.push(
-      `<path d="M${x1},${y1} A${R},${R} 0 ${largeArc},1 ${x2},${y2} L${x3},${y3} A${r},${r} 0 ${largeArc},0 ${x4},${y4} Z" fill="${color}" data-circ="${escHtml(circoscrizione)}" class="donut-seg"/>`
+      `<path d="M${x1},${y1} A${R},${R} 0 ${largeArc},1 ${x2},${y2} L${x3},${y3} A${r},${r} 0 ${largeArc},0 ${x4},${y4} Z" fill="${color}" data-circ="${escHtml(circoscrizione)}" class="donut-seg"><title>Circ. ${escHtml(circoscrizione)}</title></path>`
     );
 
     const pct = ((count / total) * 100).toFixed(0);
     const barW = Math.round((count / total) * 40);
-    legRows.push(`<div class="donut-leg-row" data-circ="${escHtml(circoscrizione)}">
+    legRows.push(`<div class="donut-leg-row" data-circ="${escHtml(circoscrizione)}" title="Circ. ${escHtml(circoscrizione)}">
       <div class="donut-dot" style="background:${color}"></div>
       <span class="donut-leg-label">Circ. ${escHtml(circoscrizione)}</span>
       <div class="donut-leg-bar-wrap"><div class="donut-leg-bar" style="width:${barW}px;background:${color}"></div></div>
@@ -94,15 +94,18 @@ function buildCircoscrizioneDonut(rows) {
 }
 
 // Grafico a classifica: stessa struttura .rank-section/.rank-row del
-// pannello dx di bivariate/tpl, con i primi 5 quartieri per numero di fontanelle.
-function buildQuartiereRanking(rows) {
-  const top = rows.slice(0, 5);
-  if (top.length === 0) return "";
-  const max = top[0].count;
+// pannello dx di bivariate/tpl. Mostra sempre i primi 5 quartieri; le righe
+// oltre la quinta restano nel DOM ma nascoste (.rank-row-extra), così il
+// bottone "mostra tutti" si limita a togliere la classe senza re-render.
+const RANK_VISIBLE_DEFAULT = 5;
 
-  const rowsHtml = top
+function buildQuartiereRanking(rows) {
+  if (rows.length === 0) return "";
+  const max = rows[0].count;
+
+  const rowsHtml = rows
     .map(
-      ({ quartiere, count }, i) => `<div class="rank-row rank-clickable" data-quartiere="${escHtml(quartiere)}">
+      ({ quartiere, count }, i) => `<div class="rank-row rank-clickable${i >= RANK_VISIBLE_DEFAULT ? " rank-row-extra" : ""}" data-quartiere="${escHtml(quartiere)}">
         <div class="rank-num">${i + 1}</div>
         <div class="rank-name" title="${escHtml(quartiere)}">${escHtml(quartiere)}</div>
         <div class="rank-bar-wrap"><div class="rank-bar" style="width:${max > 0 ? Math.round((count / max) * 50) : 0}px;background:#4d90c2"></div></div>
@@ -111,9 +114,15 @@ function buildQuartiereRanking(rows) {
     )
     .join("");
 
+  const toggleHtml =
+    rows.length > RANK_VISIBLE_DEFAULT
+      ? `<button type="button" class="rank-toggle" data-collapsed-label="Mostra tutti i quartieri (${rows.length})" data-expanded-label="Mostra solo i primi ${RANK_VISIBLE_DEFAULT}">Mostra tutti i quartieri (${rows.length})</button>`
+      : "";
+
   return `<div class="rank-section">
     <div class="rank-hdr">Top quartieri<span class="rank-hdr-unit">fontanelle</span></div>
     ${rowsHtml}
+    ${toggleHtml}
   </div>`;
 }
 
@@ -235,6 +244,13 @@ function wireStatsInteractions(root) {
       circoscrizioneSelect.dispatchEvent(new Event("change"));
       quartiereSelect.value = node.dataset.quartiere;
       quartiereSelect.dispatchEvent(new Event("change"));
+    });
+  });
+  root.querySelectorAll(".rank-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const section = btn.closest(".rank-section");
+      const expanded = section.classList.toggle("rank-expanded");
+      btn.textContent = expanded ? btn.dataset.expandedLabel : btn.dataset.collapsedLabel;
     });
   });
 }
