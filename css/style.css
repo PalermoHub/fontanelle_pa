@@ -231,6 +231,69 @@ td, th {
   color: #1a1a1a;
 }
 
+/* Tab Progetto: icone piccole (28px) invece delle grandi icone circolari originali. */
+.progetto-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.progetto-item {
+  text-align: center;
+}
+
+.progetto-icon {
+  --progetto-icon-bg: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #345f96;
+  color: #fff;
+}
+
+.progetto-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.progetto-item h3 {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.progetto-item p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+body.theme-dark .progetto-icon {
+  --progetto-icon-bg: #1b1e22;
+}
+
+.progetto-brochure {
+  display: block;
+  width: 100%;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.progetto-small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.progetto-disclaimer {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  font-style: italic;
+  opacity: 0.7;
+}
+
 /* Galleria thumbnail nel tab PlasticFree: click apre #pf-lightbox a 80% viewport. */
 .pf-gallery {
   display: flex;
