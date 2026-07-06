@@ -348,6 +348,45 @@ body.theme-dark .pf-thumb {
   padding: 0.2rem 0.3rem;
 }
 
+.credits-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 0.75rem;
+}
+
+.credits-member {
+  text-align: center;
+}
+
+.credits-member img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 0.35rem;
+  display: block;
+}
+
+.credits-member h3 {
+  margin: 0 0 0.15rem;
+  font-size: 0.8rem;
+}
+
+.credits-member p {
+  margin: 0 0 0.15rem;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.credits-member a {
+  font-size: 0.7rem;
+}
+
+.mi-link {
+  color: #4d90c2;
+  font-weight: 600;
+}
+
 .pf-lightbox {
   position: fixed;
   inset: 0;
