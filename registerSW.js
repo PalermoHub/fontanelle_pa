@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/fontanelle_pa/sw.js', { scope: '/fontanelle_pa/' })})}
