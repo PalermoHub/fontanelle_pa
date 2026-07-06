@@ -225,10 +225,29 @@ function buildCoperturaBivariateGrid(rows) {
   </div>`;
 }
 
+// Il quartiere non ha la propria circoscrizione in stats.json (conteggi
+// aggregati piatti): la deriviamo dai dati grezzi già caricati, dove ogni
+// fontanella porta entrambe le proprietà.
+function buildQuartiereCircMap(fontanelle) {
+  const map = new Map();
+  for (const f of fontanelle.features) {
+    const { quartiere, circoscrizione } = f.properties;
+    if (quartiere && circoscrizione && !map.has(quartiere)) {
+      map.set(quartiere, circoscrizione);
+    }
+  }
+  return map;
+}
+
 // Click su segmento/legenda donut o riga classifica → riusa i filtri
 // circoscrizione/quartiere già esistenti (stesso comportamento del
-// pannello bivariate: "clicca per filtrare la mappa").
-function wireStatsInteractions(root) {
+// pannello bivariate: "clicca per filtrare la mappa"). Il click sulla
+// riga quartiere NON azzera più la circoscrizione: deriva quella del
+// quartiere cliccato e la applica solo se diversa da quella attiva,
+// così i due livelli si compongono invece di escludersi a vicenda.
+function wireStatsInteractions(root, fontanelle) {
+  const quartiereCircMap = buildQuartiereCircMap(fontanelle);
+
   root.querySelectorAll("[data-circ]").forEach((node) => {
     node.addEventListener("click", () => {
       const select = document.querySelector("#filter-circoscrizione");
@@ -240,9 +259,20 @@ function wireStatsInteractions(root) {
     node.addEventListener("click", () => {
       const circoscrizioneSelect = document.querySelector("#filter-circoscrizione");
       const quartiereSelect = document.querySelector("#filter-quartiere");
-      circoscrizioneSelect.value = "";
-      circoscrizioneSelect.dispatchEvent(new Event("change"));
-      quartiereSelect.value = node.dataset.quartiere;
+      const quartiere = node.dataset.quartiere;
+
+      if (quartiereSelect.value === quartiere) {
+        quartiereSelect.value = "";
+        quartiereSelect.dispatchEvent(new Event("change"));
+        return;
+      }
+
+      const targetCirc = quartiereCircMap.get(quartiere) || "";
+      if (circoscrizioneSelect.value !== targetCirc) {
+        circoscrizioneSelect.value = targetCirc;
+        circoscrizioneSelect.dispatchEvent(new Event("change"));
+      }
+      quartiereSelect.value = quartiere;
       quartiereSelect.dispatchEvent(new Event("change"));
     });
   });
@@ -255,7 +285,7 @@ function wireStatsInteractions(root) {
   });
 }
 
-function renderStatsPanel(viewModel) {
+function renderStatsPanel(viewModel, fontanelle) {
   const el = document.querySelector("#panel-content");
   if (!el) return;
 
@@ -287,7 +317,7 @@ function renderStatsPanel(viewModel) {
     </div>
   `;
   el.appendChild(statsBlock);
-  wireStatsInteractions(statsBlock);
+  wireStatsInteractions(statsBlock, fontanelle);
 }
 
 function wirePanelTabs() {
@@ -720,7 +750,7 @@ async function main() {
   const stats = await loadStats();
 
   populateFilterOptions(fontanelle);
-  renderStatsPanel(buildStatsViewModel(stats));
+  renderStatsPanel(buildStatsViewModel(stats), fontanelle);
   wirePanelTabs();
   wirePlasticFreeGallery();
   wirePanelToggle();
