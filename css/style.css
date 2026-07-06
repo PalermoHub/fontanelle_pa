@@ -1175,6 +1175,35 @@ body.theme-dark .pf-thumb {
   text-align: right;
 }
 
+.rank-row-extra {
+  display: none;
+}
+
+.rank-section.rank-expanded .rank-row-extra {
+  display: flex;
+}
+
+.rank-toggle {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.6rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  cursor: pointer;
+  text-align: center;
+}
+
+.rank-toggle:hover {
+  opacity: 1;
+  background: rgba(127, 127, 127, 0.12);
+}
+
 @media (max-width: 768px) {
   #map-top-bar {
     left: 0;
