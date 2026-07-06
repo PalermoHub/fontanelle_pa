@@ -499,7 +499,7 @@ export function setRouteLine(map, coordinates, stats = {}) {
           <h3>Verso: ${props.destinationLabel || "fontanella"}</h3>
           <dl>
             <dt>Lunghezza</dt><dd>${km} km</dd>
-            <dt>Tempo stimato</dt><dd>${tempoLabel}</dd>
+            <dt>Tempo stimato a piedi</dt><dd>${tempoLabel}</dd>
             <dt>Pendenza media / max</dt><dd>${props.avgSlopePercent.toFixed(1)}% / ${props.maxSlopePercent.toFixed(1)}%</dd>
             <dt>Dislivello ↑ / ↓</dt><dd>${props.ascentMeters.toFixed(0)} m / ${props.descentMeters.toFixed(0)} m</dd>
           </dl>
