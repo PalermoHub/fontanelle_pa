@@ -561,6 +561,10 @@ function buildCoperturaLegendBlock(minutes) {
   const ramp = getCoperturaColorRamp(minutes);
   const block = document.createElement("div");
   block.className = "copertura-legend-block";
+  block.dataset.coperturaLegendToggle = String(minutes);
+  block.setAttribute("role", "button");
+  block.setAttribute("tabindex", "0");
+  block.title = `Mostra/nascondi copertura ${minutes} min`;
 
   const title = document.createElement("div");
   title.className = "copertura-legend-title";
@@ -638,15 +642,60 @@ function refreshIsochroneCopertura(map, fontanelle, selection) {
   refreshCoperturaLegend(hasActiveFilter ? [] : [5, 10].filter((minutes) => toggleStates[minutes]));
 }
 
+function refreshIsochroneLegendState() {
+  const isochroneStates = getIsochroneToggleStates();
+  document.querySelectorAll("[data-isochrone-legend-toggle]").forEach((item) => {
+    const minutes = Number(item.dataset.isochroneLegendToggle);
+    item.classList.toggle("legend-item-inactive", !isochroneStates[minutes]);
+  });
+}
+
 function wireIsochroneToggles(map, selection) {
   document.querySelectorAll("[data-isochrone-toggle]").forEach((input) => {
     setIsochroneVisibility(map, Number(input.dataset.isochroneToggle), input.checked);
     input.addEventListener("change", (e) => {
       setIsochroneVisibility(map, Number(e.target.dataset.isochroneToggle), e.target.checked);
+      refreshIsochroneLegendState();
     });
   });
   document.querySelectorAll("[data-copertura-toggle]").forEach((input) => {
     input.addEventListener("change", () => selection.refresh());
+  });
+
+  document.querySelectorAll("[data-isochrone-legend-toggle]").forEach((item) => {
+    const minutes = item.dataset.isochroneLegendToggle;
+    const toggleTarget = () => {
+      const input = document.querySelector(`[data-isochrone-toggle="${minutes}"]`);
+      input.checked = !input.checked;
+      input.dispatchEvent(new Event("change"));
+    };
+    item.addEventListener("click", toggleTarget);
+    item.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleTarget();
+      }
+    });
+  });
+
+  refreshIsochroneLegendState();
+
+  const coperturaLegend = document.querySelector("#copertura-legend");
+  const hideCoperturaBlock = (block) => {
+    const input = document.querySelector(`[data-copertura-toggle="${block.dataset.coperturaLegendToggle}"]`);
+    input.checked = false;
+    input.dispatchEvent(new Event("change"));
+  };
+  coperturaLegend.addEventListener("click", (e) => {
+    const block = e.target.closest("[data-copertura-legend-toggle]");
+    if (block) hideCoperturaBlock(block);
+  });
+  coperturaLegend.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const block = e.target.closest("[data-copertura-legend-toggle]");
+    if (!block) return;
+    e.preventDefault();
+    hideCoperturaBlock(block);
   });
 }
 

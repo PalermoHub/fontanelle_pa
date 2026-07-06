@@ -82,6 +82,22 @@ body.panel-closed #map {
   align-items: center;
   gap: 0.4rem;
   margin: 0.2rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.map-legend .legend-item.legend-item-inactive {
+  opacity: 0.4;
+}
+
+.copertura-legend-block {
+  cursor: pointer;
+  user-select: none;
+}
+
+.copertura-legend-block:hover,
+.map-legend .legend-item:hover {
+  opacity: 0.75;
 }
 
 .map-legend .legend-item:first-child {
