@@ -189,6 +189,10 @@ body.theme-dark #panel-toggle:hover {
   padding: 1rem;
 }
 
+.panel-tab-pane h2 {
+  font-size: 20px;
+}
+
 .panel-tab-pane p,
 .panel-tab-pane li {
   font-size: 12px;

@@ -147,7 +147,7 @@ function renderStatsPanel(viewModel) {
   const statsBlock = document.createElement("div");
   statsBlock.id = "stats-block";
   statsBlock.innerHTML = `
-    <h2>💧 Fontanelle Palermo</h2>
+    <h2>Fontanelle Palermo</h2>
     <p class="panel-subtitle">Un progetto per scoprire le fontanelle di acqua potabile</p>
     <p>Puoi non usare l'acqua imbottigliata nella plastica, puoi usare l'acqua pubblica: scopri le fontanelle più vicine a te e aiutaci a scoprire quanto sarebbe bella Palermo senza le montagne di plastica.</p>
     <div class="fsec">
