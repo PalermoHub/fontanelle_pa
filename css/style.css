@@ -1217,6 +1217,44 @@ body.theme-dark .pf-thumb {
   background: rgba(127, 127, 127, 0.12);
 }
 
+.stats-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  padding: 0.35rem 0.5rem;
+  margin: 0.4rem 0;
+  background: rgba(127, 127, 127, 0.1);
+  border-radius: 6px;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.breadcrumb-sep {
+  opacity: 0.5;
+}
+
+.breadcrumb-x {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.7rem;
+  opacity: 0.6;
+  padding: 0 0.15rem;
+  line-height: 1;
+}
+
+.breadcrumb-x:hover {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
   #map-top-bar {
     left: 0;

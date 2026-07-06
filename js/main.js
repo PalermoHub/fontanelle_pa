@@ -264,8 +264,53 @@ function updateStatsDimming(circoscrizione) {
   });
 }
 
+// Rimuovere la circoscrizione azzera anche il quartiere: il quartiere
+// dipende dallo scope circoscrizione (refreshCascadeOptions lo terrebbe
+// altrimenti selezionato se il nome esiste anche fuori scope).
+function renderStatsBreadcrumb(circoscrizione, quartiere) {
+  const el = document.querySelector("#stats-breadcrumb");
+  if (!el) return;
+
+  if (!circoscrizione && !quartiere) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+
+  const parts = [];
+  if (circoscrizione) {
+    parts.push(
+      `<span class="breadcrumb-item">Circ. ${escHtml(circoscrizione)}<button type="button" class="breadcrumb-x" data-clear="circ" title="Rimuovi filtro circoscrizione">✕</button></span>`
+    );
+  }
+  if (quartiere) {
+    parts.push(`<span class="breadcrumb-sep">›</span>`);
+    parts.push(
+      `<span class="breadcrumb-item">${escHtml(quartiere)}<button type="button" class="breadcrumb-x" data-clear="quartiere" title="Rimuovi filtro quartiere">✕</button></span>`
+    );
+  }
+  el.innerHTML = parts.join("");
+  el.hidden = false;
+
+  el.querySelectorAll("[data-clear]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const circoscrizioneSelect = document.querySelector("#filter-circoscrizione");
+      const quartiereSelect = document.querySelector("#filter-quartiere");
+      if (btn.dataset.clear === "circ") {
+        quartiereSelect.value = "";
+        circoscrizioneSelect.value = "";
+        circoscrizioneSelect.dispatchEvent(new Event("change"));
+      } else {
+        quartiereSelect.value = "";
+        quartiereSelect.dispatchEvent(new Event("change"));
+      }
+    });
+  });
+}
+
 function refreshStatsScope(fontanelle) {
   const circoscrizioneSelect = document.querySelector("#filter-circoscrizione");
+  const quartiereSelect = document.querySelector("#filter-quartiere");
   const container = document.querySelector("#quartiere-rank-container");
   if (!container) return;
 
@@ -273,6 +318,7 @@ function refreshStatsScope(fontanelle) {
   container.innerHTML = buildQuartiereRanking(computeQuartiereCounts(fontanelle, circ));
   wireStatsInteractions(container, fontanelle);
   updateStatsDimming(circ);
+  renderStatsBreadcrumb(circ, quartiereSelect.value);
 }
 
 // Click su segmento/legenda donut o riga classifica → riusa i filtri
@@ -330,6 +376,7 @@ function renderStatsPanel(viewModel, fontanelle) {
   statsBlock.innerHTML = `
     <h2>Fontanelle Palermo</h2>
     <p class="panel-subtitle">Un progetto per scoprire le fontanelle di acqua potabile</p>
+    <div id="stats-breadcrumb" class="stats-breadcrumb" hidden></div>
     <p>Puoi non usare l'acqua imbottigliata nella plastica, puoi usare l'acqua pubblica: scopri le fontanelle più vicine a te e aiutaci a scoprire quanto sarebbe bella Palermo senza le montagne di plastica.</p>
     <div class="fsec">
       <h3>Distribuzione per circoscrizione</h3>
