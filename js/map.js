@@ -388,6 +388,7 @@ const DATA_LAYER_IDS = [
   "copertura-5-fill",
   "fontanelle-points",
   "percorso-fontanella-line",
+  "isocrona-dinamica-line",
 ];
 
 const DATA_SOURCE_IDS = [
@@ -397,6 +398,7 @@ const DATA_SOURCE_IDS = [
   "copertura-5",
   "fontanelle",
   "percorso-fontanella",
+  "isocrona-dinamica",
 ];
 
 // setStyle() normalmente butta via layer/source custom, e ri-aggiungerli
@@ -512,4 +514,38 @@ export function clearRouteLine(map) {
   currentRouteStats = null;
   const source = map.getSource("percorso-fontanella");
   if (source) source.setData({ type: "FeatureCollection", features: [] });
+}
+
+const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
+
+// Stessi colori della legenda statica isocrone-5/isocrone-10 (index.html), cosi'
+// l'isocrona dinamica attorno alla fontanella sotto cursore si legge come la
+// stessa cosa della versione precalcolata, non come un layer scollegato.
+export function setDynamicIsochroneNetwork(map, featureCollection) {
+  const data = featureCollection || EMPTY_FEATURE_COLLECTION;
+  const source = map.getSource("isocrona-dinamica");
+  if (source) {
+    source.setData(data);
+    return;
+  }
+  map.addSource("isocrona-dinamica", { type: "geojson", data });
+  map.addLayer(
+    {
+      id: "isocrona-dinamica-line",
+      type: "line",
+      source: "isocrona-dinamica",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-width": 6,
+        "line-opacity": 0.55,
+        "line-color": ["match", ["get", "band"], 300, "#6baed6", 600, "#fc9474", "#6baed6"],
+      },
+    },
+    map.getLayer("fontanelle-points") ? "fontanelle-points" : undefined
+  );
+}
+
+export function clearDynamicIsochroneNetwork(map) {
+  const source = map.getSource("isocrona-dinamica");
+  if (source) source.setData(EMPTY_FEATURE_COLLECTION);
 }

@@ -178,3 +178,59 @@ export function findRouteToNearestFontanella(startPoint, index) {
   }
   return null;
 }
+
+// Dijkstra a sorgente singola senza target: esplora tutta la rete raggiungibile
+// entro maxSeconds e ritorna, per ogni arco interamente dentro il cutoff, la
+// fascia oraria a cui appartiene ("band" = il piu' dei due tempi cumulati agli
+// estremi, arrotondato alla soglia superiore piu' vicina in bandsSeconds).
+// Usato per l'isocrona attorno alla fontanella sotto cursore — a differenza
+// della ricerca sulla fontanella non si ferma al primo target, quindi il
+// cutoff e' l'unico limite naturale.
+export function reachableNetwork(startPoint, index, bandsSeconds) {
+  const { adjacency, nodeCoord } = index;
+  const startNodeId = findNearestNodeId(startPoint, index.nodeCoord);
+  if (startNodeId == null || !adjacency.has(startNodeId)) return null;
+
+  const maxSeconds = bandsSeconds[bandsSeconds.length - 1];
+  const timeSec = new Map([[startNodeId, 0]]);
+  const visited = new Set();
+  const heap = new MinHeap();
+  heap.push(0, startNodeId);
+
+  while (heap.size > 0) {
+    const { priority: t, value: nodeId } = heap.pop();
+    if (visited.has(nodeId)) continue;
+    if (t > maxSeconds) break;
+    visited.add(nodeId);
+
+    for (const { to, weightSec } of adjacency.get(nodeId) || []) {
+      if (visited.has(to)) continue;
+      const newTime = t + weightSec;
+      if (newTime > maxSeconds) continue;
+      if (newTime < (timeSec.get(to) ?? Infinity)) {
+        timeSec.set(to, newTime);
+        heap.push(newTime, to);
+      }
+    }
+  }
+
+  const bandFor = (seconds) => bandsSeconds.find((b) => seconds <= b) ?? null;
+  const seenPairs = new Set();
+  const features = [];
+  for (const nodeId of timeSec.keys()) {
+    for (const { to } of adjacency.get(nodeId) || []) {
+      if (!timeSec.has(to)) continue;
+      const pair = nodeId < to ? `${nodeId}_${to}` : `${to}_${nodeId}`;
+      if (seenPairs.has(pair)) continue;
+      seenPairs.add(pair);
+      const band = bandFor(Math.max(timeSec.get(nodeId), timeSec.get(to)));
+      if (band == null) continue;
+      features.push({
+        type: "Feature",
+        properties: { band },
+        geometry: { type: "LineString", coordinates: [nodeCoord.get(nodeId), nodeCoord.get(to)] },
+      });
+    }
+  }
+  return { type: "FeatureCollection", features };
+}

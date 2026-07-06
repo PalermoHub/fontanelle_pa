@@ -8,7 +8,9 @@ import {
 } from "./filters.js";
 import { loadFontanelle, loadRoadNetwork, loadStats } from "./data.js";
 import {
+  clearDynamicIsochroneNetwork,
   clearIsochroneFilter,
+  clearRouteLine,
   getCoperturaColorRamp,
   HOME_ZOOM,
   initMap,
@@ -16,13 +18,14 @@ import {
   setBasemapTheme,
   setCoperturaFilterActive,
   setCoperturaHoverFilter,
+  setDynamicIsochroneNetwork,
   setFontanelleFilter,
   setIsochroneFilterByIds,
   setIsochroneVisibility,
   setIsochroneVisibilityOverride,
   setRouteLine,
 } from "./map.js";
-import { buildRoutingIndex, findRouteToNearestFontanella } from "./routing.js";
+import { buildRoutingIndex, findRouteToNearestFontanella, reachableNetwork } from "./routing.js";
 import { buildStatsViewModel } from "./stats.js";
 import { wireSearch } from "./search.js";
 
@@ -803,40 +806,46 @@ function wireMapToolbar(map) {
   applyTheme(localStorage.getItem("fontanelle-theme") || "light");
 }
 
-function wireGeolocation(map, fontanelle) {
+// Il grafo stradale (~1.5MB gzip) e' condiviso tra il bottone "fontanella piu'
+// vicina" e il percorso live al passaggio del cursore: caricato al primo uso.
+let sharedRoutingIndexPromise = null;
+function getSharedRoutingIndex() {
+  if (!sharedRoutingIndexPromise) {
+    sharedRoutingIndexPromise = loadRoadNetwork().then(buildRoutingIndex);
+  }
+  return sharedRoutingIndexPromise;
+}
+
+function drawRouteTo(map, point, index, fontanellaById) {
+  const route = findRouteToNearestFontanella(point, index);
+  if (!route) return null;
+  const destinazione = fontanellaById.get(route.fontanellaId);
+  setRouteLine(map, route.pathCoordinates, {
+    lengthMeters: route.distanceMeters,
+    durationSeconds: route.durationSeconds,
+    avgSlopePercent: route.avgSlopePercent,
+    maxSlopePercent: route.maxSlopePercent,
+    ascentMeters: route.ascentMeters,
+    descentMeters: route.descentMeters,
+    elevationProfile: route.elevationProfile,
+    destinationLabel: destinazione
+      ? `${destinazione.indirizzo}${destinazione.quartiere ? ` (${destinazione.quartiere})` : ""}`
+      : `Fontanella #${route.fontanellaId}`,
+  });
+  return route;
+}
+
+function wireGeolocation(map, fontanellaById) {
   const button = document.querySelector("#locate-nearest");
-  const fontanellaById = new Map(fontanelle.features.map((f) => [f.properties.id, f.properties]));
-  let routingIndex = null;
   let awaitingMapClick = false;
 
-  async function getRoutingIndex() {
-    if (!routingIndex) {
-      const graph = await loadRoadNetwork();
-      routingIndex = buildRoutingIndex(graph);
-    }
-    return routingIndex;
-  }
-
   async function routeFrom(point) {
-    const index = await getRoutingIndex();
-    const route = findRouteToNearestFontanella(point, index);
+    const index = await getSharedRoutingIndex();
+    const route = drawRouteTo(map, point, index, fontanellaById);
     if (!route) {
       window.alert("Percorso non disponibile: nessuna fontanella raggiungibile da questo punto.");
       return;
     }
-    const destinazione = fontanellaById.get(route.fontanellaId);
-    setRouteLine(map, route.pathCoordinates, {
-      lengthMeters: route.distanceMeters,
-      durationSeconds: route.durationSeconds,
-      avgSlopePercent: route.avgSlopePercent,
-      maxSlopePercent: route.maxSlopePercent,
-      ascentMeters: route.ascentMeters,
-      descentMeters: route.descentMeters,
-      elevationProfile: route.elevationProfile,
-      destinationLabel: destinazione
-        ? `${destinazione.indirizzo}${destinazione.quartiere ? ` (${destinazione.quartiere})` : ""}`
-        : `Fontanella #${route.fontanellaId}`,
-    });
     const bounds = route.pathCoordinates.reduce(
       (b, coord) => b.extend(coord),
       new maplibregl.LngLatBounds(route.pathCoordinates[0], route.pathCoordinates[0])
@@ -866,6 +875,74 @@ function wireGeolocation(map, fontanelle) {
     if (!awaitingMapClick) return;
     awaitingMapClick = false;
     routeFrom([e.lngLat.lng, e.lngLat.lat]);
+  });
+}
+
+// Percorso live: al passaggio del cursore ovunque sulla mappa disegna la strada
+// piu' breve verso la fontanella piu' vicina da quel punto — stesso calcolo del
+// bottone "fontanella piu' vicina", ma continuo invece che al click. Nelle
+// strette vicinanze di una fontanella (cursore sopra il suo marker) il
+// percorso lascia il posto all'isocrona 5/10 min centrata su quella fontanella,
+// piu' utile li' che una linea verso se stessa.
+const HOVER_ROUTE_THROTTLE_MS = 150;
+const HOVER_ISOCHRONE_BANDS_SECONDS = [300, 600];
+
+function wireHoverRoute(map, fontanellaById) {
+  const toggle = document.querySelector("#dynamic-isochrone-toggle");
+  if (!toggle) return;
+
+  let routingIndex = null;
+  let lastRunAt = 0;
+  let hoveringFontanella = false;
+
+  function onMouseMove(e) {
+    if (hoveringFontanella) return;
+    const now = performance.now();
+    if (now - lastRunAt < HOVER_ROUTE_THROTTLE_MS) return;
+    lastRunAt = now;
+    drawRouteTo(map, [e.lngLat.lng, e.lngLat.lat], routingIndex, fontanellaById);
+  }
+
+  function onFontanellaEnter() {
+    hoveringFontanella = true;
+    clearRouteLine(map);
+  }
+
+  function onFontanellaMove(e) {
+    const feature = e.features?.[0];
+    if (!feature) return;
+    const now = performance.now();
+    if (now - lastRunAt < HOVER_ROUTE_THROTTLE_MS) return;
+    lastRunAt = now;
+    const featureCollection = reachableNetwork(
+      feature.geometry.coordinates.slice(),
+      routingIndex,
+      HOVER_ISOCHRONE_BANDS_SECONDS
+    );
+    setDynamicIsochroneNetwork(map, featureCollection);
+  }
+
+  function onFontanellaLeave() {
+    hoveringFontanella = false;
+    clearDynamicIsochroneNetwork(map);
+  }
+
+  toggle.addEventListener("change", async () => {
+    if (!toggle.checked) {
+      map.off("mousemove", onMouseMove);
+      map.off("mouseenter", "fontanelle-points", onFontanellaEnter);
+      map.off("mousemove", "fontanelle-points", onFontanellaMove);
+      map.off("mouseleave", "fontanelle-points", onFontanellaLeave);
+      hoveringFontanella = false;
+      clearRouteLine(map);
+      clearDynamicIsochroneNetwork(map);
+      return;
+    }
+    routingIndex = await getSharedRoutingIndex();
+    map.on("mousemove", onMouseMove);
+    map.on("mouseenter", "fontanelle-points", onFontanellaEnter);
+    map.on("mousemove", "fontanelle-points", onFontanellaMove);
+    map.on("mouseleave", "fontanelle-points", onFontanellaLeave);
   });
 }
 
@@ -908,7 +985,9 @@ async function main() {
     refreshCascade: selection.refreshCascade,
     onApply: selection.refresh,
   });
-  wireGeolocation(map, fontanelle);
+  const fontanellaById = new Map(fontanelle.features.map((f) => [f.properties.id, f.properties]));
+  wireGeolocation(map, fontanellaById);
+  wireHoverRoute(map, fontanellaById);
 }
 
 main();
