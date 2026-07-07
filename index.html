@@ -199,10 +199,12 @@
         </a>
       </div>
       <aside id="panel">
+        <div id="panel-resize-handle"></div>
         <div id="panel-tabs">
 		 <button class="panel-tab" data-tab="progetto">Progetto</button>
           <button class="panel-tab active" data-tab="stats">Statistiche</button>
           <button class="panel-tab" data-tab="plasticfree">PlasticFree</button>
+          <button class="panel-tab" data-tab="guida">Guida</button>
           <button class="panel-tab" data-tab="credits">Credits</button>
         </div>
         <div id="panel-content" class="panel-tab-pane active" data-pane="stats">
@@ -338,6 +340,79 @@
           Data la natura esclusivamente informativa degli elaborati grafici e dei testi riportati, questi non costituiscono atti ufficiali.
           Per accedere agli atti ufficiali si rinvia agli elaborati definitivi allegati alle specifiche deliberazioni.<br><br>
           <b>Si declina ogni responsabilità sulla veridicità dei dati.</b></p>
+        </div>
+        <div id="panel-guida" class="panel-tab-pane" data-pane="guida" hidden>
+          <h2>Guida</h2>
+          <p class="panel-subtitle">Come funziona la mappa e a cosa servono i pulsanti.</p>
+
+          <h3>Cos'è questa mappa</h3>
+          <p>Questa mappa mostra tutte le fontanelle pubbliche di Palermo. Puoi cercarle, vedere quanto ci vuole per raggiungerle a piedi (le "isocrone") e capire quali zone della città ne sono coperte o scoperte. Nel pannello a destra trovi anche le statistiche e il progetto PlasticFree.</p>
+
+          <h3>Come cercare una fontanella</h3>
+          <p>Usa la casella <strong>"Cerca circoscrizione, quartiere, indirizzo…"</strong> in alto sulla mappa per trovare velocemente una zona. Con il pulsante <strong>Filtri</strong> (icona a imbuto) puoi restringere la ricerca per circoscrizione, quartiere o singola fontanella.</p>
+
+          <h3>I pulsanti della barra mappa</h3>
+          <div class="progetto-list guida-list">
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+              </span>
+              <h3>Vista iniziale</h3>
+              <p>Riporta la mappa alla posizione e allo zoom di partenza.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2v-2H2v2zm18 0h2v-2h-2v2zm-9-9h2V2h-2v2zm0 18h2v-2h-2v2zM5.99 4.58L4.58 5.99l1.06 1.06 1.41-1.41-1.06-1.06zm12.37 12.37l-1.41 1.41 1.06 1.06 1.41-1.41-1.06-1.06zm1.06-12.96l-1.41 1.41 1.06 1.06 1.41-1.41-1.06-1.06zM7.05 18.36l-1.41 1.41 1.06 1.06 1.41-1.41-1.06-1.06z"/></svg>
+              </span>
+              <h3>Tema chiaro / Satellite / Tema scuro</h3>
+              <p>Tre pulsanti in gruppo per cambiare lo sfondo della mappa: chiaro, foto satellitare o scuro.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+              </span>
+              <h3>Schermo intero</h3>
+              <p>Espande la mappa a tutto schermo, utile su smartphone.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="10" width="20" height="4" rx="2" fill="currentColor"/></svg>
+              </span>
+              <h3>Cursore dello zoom</h3>
+              <p>Trascina per avvicinare o allontanare la vista sulla mappa; il numero accanto indica il livello di zoom attuale.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" style="color:#4d90c2"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></svg>
+              </span>
+              <h3>Isocrona 5 min / 10 min</h3>
+              <p>Accende o spegne sulla mappa le aree raggiungibili a piedi in 5 o 10 minuti da ogni fontanella.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" opacity="0.9"/><rect x="13" y="3" width="8" height="8" opacity="0.6"/><rect x="3" y="13" width="8" height="8" opacity="0.6"/><rect x="13" y="13" width="8" height="8" opacity="0.3"/></svg>
+              </span>
+              <h3>Copertura 5 min / 10 min</h3>
+              <p>Mostra come una griglia colorata quanto è "coperto" ogni pezzo di città dalle fontanelle, a 5 o 10 minuti a piedi.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" style="color:#5cb85c"><path d="M12 2C8 6 6 9.5 6 12.5A6 6 0 0 0 18 12.5C18 9.5 16 6 12 2z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="2" fill="currentColor"/></svg>
+              </span>
+              <h3>Isocrona dinamica</h3>
+              <p>Attivala e poi muovi il mouse sulla mappa: vedrai comparire in tempo reale il percorso a piedi più veloce verso la fontanella più vicina a quel punto. Se il cursore è sopra una fontanella, al suo posto vedi l'area che si raggiunge da lì in 5/10 minuti.</p>
+            </div>
+            <div class="progetto-item">
+              <span class="progetto-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+              </span>
+              <h3>Percorso verso la fontanella più vicina</h3>
+              <p>Cliccalo per calcolare il percorso a piedi più veloce dalla tua posizione GPS alla fontanella più vicina, seguendo le strade reali: la mappa disegna il tragitto e mostra distanza, tempo stimato e dislivello. Se neghi il permesso di geolocalizzazione, puoi cliccare un punto qualsiasi sulla mappa per usarlo come partenza.</p>
+            </div>
+          </div>
+
+          <h3>Il pannello laterale</h3>
+          <p>Dalle schede in alto a destra puoi passare tra <strong>Progetto</strong> (perché è nato questo progetto), <strong>Statistiche</strong> (i numeri delle fontanelle), <strong>PlasticFree</strong> e <strong>Credits</strong> (chi ha realizzato il progetto). Il pulsante <strong>›</strong> a fianco del pannello lo apre o lo chiude per vedere meglio la mappa.</p>
         </div>
         <div id="panel-credits" class="panel-tab-pane" data-pane="credits" hidden>
           <h2>Credits</h2>

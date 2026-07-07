@@ -456,9 +456,14 @@ function wirePlasticFreeGallery() {
   });
 }
 
-function wirePanelToggle() {
+const PANEL_WIDTH_MIN = 350;
+const PANEL_WIDTH_MAX = 450;
+const PANEL_WIDTH_STORAGE_KEY = "panelWidth";
+
+function wirePanelToggle(map) {
   const panelEl = document.getElementById("panel");
   const toggleBtn = document.getElementById("panel-toggle");
+  const resizeHandle = document.getElementById("panel-resize-handle");
   if (!panelEl || !toggleBtn) return;
 
   function setPanelOpen(open) {
@@ -475,6 +480,48 @@ function wirePanelToggle() {
   if (window.matchMedia("(max-width: 768px)").matches) {
     setPanelOpen(false);
   }
+
+  wirePanelResize(panelEl, resizeHandle, map);
+}
+
+function wirePanelResize(panelEl, resizeHandle, map) {
+  if (!resizeHandle) return;
+
+  const storedWidth = Number(localStorage.getItem(PANEL_WIDTH_STORAGE_KEY));
+  if (storedWidth) {
+    setPanelWidth(clampPanelWidth(storedWidth));
+  }
+
+  function clampPanelWidth(width) {
+    return Math.min(PANEL_WIDTH_MAX, Math.max(PANEL_WIDTH_MIN, width));
+  }
+
+  function setPanelWidth(width) {
+    document.documentElement.style.setProperty("--panel-width", `${width}px`);
+  }
+
+  resizeHandle.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    resizeHandle.setPointerCapture(e.pointerId);
+    document.body.classList.add("panel-resizing");
+
+    function onPointerMove(moveEvent) {
+      const width = clampPanelWidth(window.innerWidth - moveEvent.clientX);
+      setPanelWidth(width);
+      map?.resize();
+    }
+
+    function onPointerUp() {
+      document.body.classList.remove("panel-resizing");
+      resizeHandle.removeEventListener("pointermove", onPointerMove);
+      resizeHandle.removeEventListener("pointerup", onPointerUp);
+      const width = getComputedStyle(document.documentElement).getPropertyValue("--panel-width");
+      localStorage.setItem(PANEL_WIDTH_STORAGE_KEY, parseInt(width, 10));
+    }
+
+    resizeHandle.addEventListener("pointermove", onPointerMove);
+    resizeHandle.addEventListener("pointerup", onPointerUp);
+  });
 }
 
 function addSelectOption(selectEl, value) {
@@ -976,7 +1023,7 @@ async function main() {
   renderStatsPanel(buildStatsViewModel(stats), fontanelle);
   wirePanelTabs();
   wirePlasticFreeGallery();
-  wirePanelToggle();
+  wirePanelToggle(map);
   wireIsochroneToggles(map, selection);
   wireFilters(map, fontanelle, selection);
   wireSearch({

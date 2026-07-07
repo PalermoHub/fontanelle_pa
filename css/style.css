@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: light dark;
+  --panel-width: 350px;
 }
 
 html, body, #app {
@@ -19,9 +20,13 @@ html, body, #app {
   position: absolute;
   top: 0;
   left: 0;
-  right: 314px;
+  right: var(--panel-width);
   bottom: 0;
   transition: right 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+body.panel-resizing #map {
+  transition: none;
 }
 
 body.panel-closed #map {
@@ -120,7 +125,7 @@ body.panel-closed #map {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 314px;
+  width: var(--panel-width);
   border-left: 1px solid #ccc;
   overflow-y: auto;
   background: #ffffff;
@@ -132,9 +137,24 @@ body.panel-closed #map {
   transform: translateX(100%);
 }
 
+#panel-resize-handle {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 12;
+  touch-action: none;
+}
+
+body.panel-resizing #panel {
+  transition: none;
+}
+
 #panel-toggle {
   position: absolute;
-  right: 314px;
+  right: var(--panel-width);
   top: 50%;
   transform: translateY(-50%);
   width: 20px;
@@ -155,19 +175,27 @@ body.panel-closed #map {
   transition: background 0.15s, right 0.35s cubic-bezier(.4,0,.2,1);
 }
 
+body.panel-resizing #panel-toggle {
+  transition: none;
+}
+
 body.panel-closed #panel-toggle {
   right: 0;
 }
 
 #map-logos {
   position: absolute;
-  right: calc(314px + 10px);
+  right: calc(var(--panel-width) + 10px);
   bottom: 10px;
   z-index: 5;
   display: flex;
   flex-direction: column;
   gap: 8px;
   transition: right 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+body.panel-resizing #map-logos {
+  transition: none;
 }
 
 body.panel-closed #map-logos {
